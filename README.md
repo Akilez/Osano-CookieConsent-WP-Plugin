@@ -24,7 +24,7 @@ This plugin now includes:
 ## Structure
 
 ```text
-osano-wp-plugin/
+cookie-consent-by-osano/
   AGENTS.md
   CREDITS.md
   README.md
@@ -128,7 +128,7 @@ The plugin is configured to update from GitHub releases instead of WordPress.org
 
 Implementation details:
 
-- the plugin header includes `Update URI: https://github.com/Akilez/osano-wp-plugin`
+- the plugin header includes `Update URI: https://github.com/Akilez/Osano-CookieConsent-WP-Plugin`
 - the vendored `plugin-update-checker` library handles update discovery
 - GitHub release assets are enabled and filtered to the packaged `cookie-consent-by-osano.zip` asset
 - a GitHub token can be supplied later with the `CCBO_COOKIE_CONSENT_GITHUB_TOKEN` constant or the `ccbo_cookie_consent_update_token` filter if the repository becomes private

@@ -34,7 +34,9 @@ class CCBO_Cookie_Consent_Updater {
 			return;
 		}
 
-		$repository_url = trailingslashit( (string) apply_filters( 'ccbo_cookie_consent_update_repository_url', 'https://github.com/Akilez/osano-wp-plugin' ) );
+		$repository_url = $this->normalize_repository_url(
+			(string) apply_filters( 'ccbo_cookie_consent_update_repository_url', 'https://github.com/Akilez/Osano-CookieConsent-WP-Plugin' )
+		);
 
 		if ( '' === $repository_url ) {
 			return;
@@ -66,5 +68,23 @@ class CCBO_Cookie_Consent_Updater {
 		if ( '' !== $token ) {
 			$this->update_checker->setAuthentication( $token );
 		}
+	}
+
+	/**
+	 * Normalize the configured GitHub repository URL for the update checker.
+	 *
+	 * @param string $repository_url Raw repository URL.
+	 * @return string
+	 */
+	private function normalize_repository_url( $repository_url ) {
+		$repository_url = trim( $repository_url );
+
+		if ( '' === $repository_url ) {
+			return '';
+		}
+
+		$repository_url = preg_replace( '#\.git/?$#i', '', $repository_url );
+
+		return untrailingslashit( $repository_url );
 	}
 }

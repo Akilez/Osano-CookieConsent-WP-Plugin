@@ -9,7 +9,7 @@
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: cookie-consent-by-osano
- * Update URI: https://github.com/Akilez/osano-wp-plugin
+ * Update URI: https://github.com/Akilez/Osano-CookieConsent-WP-Plugin
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

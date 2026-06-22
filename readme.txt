@@ -57,7 +57,7 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 
 = How do plugin updates work? =
 
-This plugin is configured to read updates from GitHub releases. Publish a new tagged release with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
+This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
 
