@@ -4,7 +4,7 @@ Tags: cookies, privacy, gdpr, consent
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,6 +60,16 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
+
+= 0.2.2 =
+
+* Fixed malformed Windows-built package issues by standardizing release ZIP generation in GitHub Actions
+* Removed UTF-8 BOM output that caused activation warnings on some installs
+* Corrected GitHub updater repository configuration and release workflow behavior
+
+= 0.2.1 =
+
+* Reserved for the unreleased tag alignment fix
 
 = 0.2.0 =
 

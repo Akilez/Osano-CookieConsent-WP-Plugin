@@ -146,7 +146,7 @@ To ship a new version through GitHub updates:
 
 1. Bump the plugin version in `cookie-consent-by-osano.php` and update the changelog/docs.
 2. Commit and push the changes.
-3. Create and push a Git tag such as `v0.2.0`.
+3. Create and push a Git tag such as `v0.2.2`.
 4. Let GitHub Actions run `.github/workflows/release.yml`.
 5. Confirm the workflow attached `cookie-consent-by-osano.zip` to the GitHub release.
 6. WordPress sites using the plugin will detect the newer release through the updater library.
