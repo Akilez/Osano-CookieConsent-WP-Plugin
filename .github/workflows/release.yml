@@ -43,12 +43,6 @@ jobs:
           cd "$PACKAGE_ROOT"
           zip -r "$ZIP_PATH" 'cookie-consent-by-osano'
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: cookie-consent-by-osano
-          path: cookie-consent-by-osano.zip
-
       - name: Attach zip to GitHub release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
