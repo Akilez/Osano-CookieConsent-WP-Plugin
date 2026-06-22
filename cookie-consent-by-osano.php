@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Plugin Name: Cookie Consent by Osano
  * Description: Reusable cookie consent plugin powered by Osano CookieConsent.
