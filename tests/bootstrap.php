@@ -33,6 +33,10 @@ function esc_attr( $text ) {
     return (string) $text;
 }
 
+function esc_js( $text ) {
+    return addslashes( (string) $text );
+}
+
 function esc_textarea( $text ) {
     return (string) $text;
 }

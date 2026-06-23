@@ -156,6 +156,11 @@ class CCBO_Cookie_Consent_Assets {
 				'timeout'    => (int) $options['location_service_timeout'],
 				'cacheHours' => (int) $options['location_service_cache_hours'],
 			),
+			'ga4' => array(
+				'enabled'       => ! empty( $options['ga4_enabled'] ) && '' !== $options['ga4_measurement_id'],
+				'measurementId' => $options['ga4_measurement_id'],
+			),
+			'deferredScripts' => $this->get_deferred_scripts(),
 			'meta'      => array(
 				'pluginVersion' => CCBO_COOKIE_CONSENT_VERSION,
 			),
@@ -181,5 +186,120 @@ class CCBO_Cookie_Consent_Assets {
 		}
 
 		return trim( (string) $options['custom_css'] );
+	}
+
+	/**
+	 * Return consent-gated scripts registered by site-specific code.
+	 *
+	 * @return array
+	 */
+	private function get_deferred_scripts() {
+		$scripts    = array_merge(
+			$this->get_built_in_deferred_scripts(),
+			(array) apply_filters( 'ccbo_cookie_consent_deferred_scripts', array() )
+		);
+		$normalized = array();
+
+		if ( ! is_array( $scripts ) ) {
+			return $normalized;
+		}
+
+		foreach ( $scripts as $index => $script ) {
+			if ( ! is_array( $script ) ) {
+				continue;
+			}
+
+			$src    = isset( $script['src'] ) ? esc_url_raw( trim( (string) $script['src'] ) ) : '';
+			$inline = isset( $script['inline'] ) ? trim( (string) $script['inline'] ) : '';
+
+			if ( '' === $src && '' === $inline ) {
+				continue;
+			}
+
+			$script_id = isset( $script['id'] ) ? sanitize_key( $script['id'] ) : '';
+
+			if ( '' === $script_id ) {
+				$script_id = 'ccbo_deferred_script_' . absint( $index + 1 );
+			}
+
+			$normalized_script = array(
+				'id'         => $script_id,
+				'src'        => $src,
+				'inline'     => $inline,
+				'attributes' => $this->normalize_deferred_script_attributes(
+					isset( $script['attributes'] ) ? $script['attributes'] : array()
+				),
+			);
+
+			$normalized[] = $normalized_script;
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Return built-in deferred scripts for first-party integrations.
+	 *
+	 * @return array
+	 */
+	private function get_built_in_deferred_scripts() {
+		$options = $this->settings->get_options();
+
+		if ( empty( $options['ga4_enabled'] ) || '' === $options['ga4_measurement_id'] ) {
+			return array();
+		}
+
+		$measurement_id = $options['ga4_measurement_id'];
+
+		return array(
+			array(
+				'id'         => 'ccbo_ga4_library',
+				'src'        => 'https://www.googletagmanager.com/gtag/js?id=' . rawurlencode( $measurement_id ),
+				'attributes' => array(
+					'async' => true,
+				),
+			),
+			array(
+				'id'     => 'ccbo_ga4_init',
+				'inline' => "window.dataLayer = window.dataLayer || [];\nwindow.gtag = window.gtag || function(){dataLayer.push(arguments);};\ngtag('js', new Date());\ngtag('config', '" . esc_js( $measurement_id ) . "');",
+			),
+		);
+	}
+
+	/**
+	 * Normalize deferred script tag attributes.
+	 *
+	 * @param mixed $attributes Raw attributes.
+	 * @return array
+	 */
+	private function normalize_deferred_script_attributes( $attributes ) {
+		$normalized = array();
+
+		if ( ! is_array( $attributes ) ) {
+			return $normalized;
+		}
+
+		foreach ( $attributes as $name => $value ) {
+			$name = strtolower( sanitize_key( (string) $name ) );
+
+			if ( '' === $name ) {
+				continue;
+			}
+
+			if ( ! in_array( $name, array( 'async', 'defer', 'type', 'crossorigin', 'referrerpolicy', 'nonce' ), true ) && 0 !== strpos( $name, 'data-' ) ) {
+				continue;
+			}
+
+			if ( is_bool( $value ) ) {
+				$normalized[ $name ] = $value;
+				continue;
+			}
+
+			if ( is_scalar( $value ) ) {
+				$normalized[ $name ] = sanitize_text_field( (string) $value );
+			}
+		}
+
+		return $normalized;
 	}
 }

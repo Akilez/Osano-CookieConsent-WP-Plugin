@@ -4,7 +4,7 @@ Tags: cookies, privacy, gdpr, consent
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.2.2
+Stable tag: 0.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,8 @@ Current features:
 * Configurable cookie name, domain, path, and expiry
 * Optional ipapi-based location services for EU-only banner display
 * Configurable location lookup timeout and cache duration
+* Built-in Google Analytics 4 integration with consent-gated loading
+* Consent-aware deferred script loading for custom analytics or marketing snippets
 * Banner color controls and additional CSS
 * Custom browser events for consent initialization and status changes
 * WordPress filters and actions for site-specific overrides
@@ -51,6 +53,10 @@ Yes. When location services are enabled, the plugin uses ipapi to detect the vis
 
 Yes. The plugin dispatches custom browser events and exposes WordPress hooks for site-specific integrations.
 
+= Can this plugin block Google Analytics 4 until consent is granted? =
+
+Yes. The plugin now includes a built-in GA4 integration that loads through the consent gate when you enable it and provide a measurement ID.
+
 = How do I run the tests? =
 
 From the plugin root, run `php tests/run.php`. The test suite uses a lightweight WordPress shim and does not require Composer or PHPUnit.
@@ -60,6 +66,14 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
+
+= 0.3.0 =
+
+* Added consent-gated deferred script loading for custom analytics and marketing integrations
+* Added a built-in Google Analytics 4 integration with consent-aware loading
+* Added frontend consent helper methods for checking status and tracking eligibility
+* Fixed non-EU banner skips so consent-gated scripts can still load when EU targeting is bypassed
+* Updated documentation for EU lookup fallback and consent-gated integrations
 
 = 0.2.2 =
 

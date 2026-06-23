@@ -16,6 +16,7 @@ This plugin now includes:
 - ipapi-based location services for EU-only banner display
 - frontend config generation from saved admin settings
 - browser events for consent initialization, status changes, and location lookups
+- consent-gated deferred script loading for site-specific analytics and marketing integrations
 - lightweight PHP functional tests that run without Composer or a WordPress test install
 - vendored GitHub update support via Plugin Update Checker
 - a GitHub Actions workflow that builds the release ZIP asset for tagged releases
@@ -72,6 +73,7 @@ The current settings screen includes these tabs:
 - `Banner Content`
 - `Cookie Settings`
 - `Location Services`
+- `Integrations`
 - `Styling`
 
 Key configuration areas include:
@@ -81,7 +83,8 @@ Key configuration areas include:
 - message, button labels, and policy URL
 - cookie name, domain, path, and expiration
 - ipapi endpoint, timeout, and location cache duration
-- banner color controls and additional CSS
+- built-in Google Analytics 4 consent-gated loading
+- banner color controls and plain additional CSS
 
 All settings are stored under the option key `ccbo_cookie_consent_options`.
 
@@ -93,7 +96,7 @@ Behavior:
 
 - if the visitor is detected in the EU, the banner initializes normally
 - if the visitor is outside the EU, the banner is skipped
-- if the lookup fails or times out, the plugin falls back to showing the banner so EU visitors are not skipped because of a network failure
+- if the lookup fails, times out, or returns invalid data, the plugin falls back to showing the banner so EU visitors are not skipped because of a network failure
 - visitor location results are cached in the browser for the configured number of hours
 
 The plugin passes the resolved country into CookieConsent via `law.countryCode`.
@@ -118,9 +121,63 @@ The plugin also exposes these WordPress extension points:
 - `apply_filters( 'ccbo_cookie_consent_enabled', $enabled )`
 - `apply_filters( 'ccbo_cookie_consent_config', $config )`
 - `apply_filters( 'ccbo_cookie_consent_default_options', $defaults )`
+- `apply_filters( 'ccbo_cookie_consent_deferred_scripts', $scripts )`
 - `apply_filters( 'ccbo_cookie_consent_policy_url', $url )`
 - `do_action( 'ccbo_cookie_consent_before_banner_init' )`
 - `do_action( 'ccbo_cookie_consent_after_banner_init' )`
+
+## Consent-Gated Scripts
+
+The plugin can now enforce consent-aware loading for scripts that are registered through the `ccbo_cookie_consent_deferred_scripts` filter.
+
+It also includes a built-in Google Analytics 4 integration that uses the same consent gate when a measurement ID is configured in the admin.
+
+Behavior:
+
+- in `opt-in` mode, deferred scripts do not load until the visitor explicitly allows cookies
+- in `opt-out` mode, deferred scripts load by default and stop loading for future page views after the visitor declines
+- in `info` mode, deferred scripts load normally because the banner is informational only
+- when EU-only targeting skips the banner for a non-EU visitor, deferred scripts still load
+- when location lookup fails, the banner still shows and deferred scripts remain gated by the active consent mode
+
+Example registration:
+
+```php
+add_filter( 'ccbo_cookie_consent_deferred_scripts', function ( $scripts ) {
+	$scripts[] = array(
+		'id'  => 'google_analytics',
+		'src' => 'https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX',
+		'attributes' => array(
+			'async' => true,
+		),
+	);
+
+	$scripts[] = array(
+		'id'     => 'google_analytics_init',
+		'inline' => "window.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('js', new Date());\ngtag('config', 'G-XXXXXXXXXX');",
+	);
+
+	return $scripts;
+} );
+```
+
+Frontend helper:
+
+- `window.ccboCookieConsent.getStatus()`
+- `window.ccboCookieConsent.hasAnswered()`
+- `window.ccboCookieConsent.allowsTracking()`
+- `window.ccboCookieConsent.loadDeferredScripts()`
+
+Browser events now include consent state that site code can react to:
+
+- `ccboCookieConsentInitialised`
+- `ccboCookieConsentChanged`
+- `ccboCookieConsentDeferredScriptLoaded`
+
+Important limitation:
+
+- this only controls scripts registered through the plugin hook
+- if a theme or another plugin hardcodes analytics, pixels, or tag manager snippets directly into the page, those scripts must be moved behind this gate or removed from their original source
 
 ## GitHub Updates
 
@@ -146,7 +203,7 @@ To ship a new version through GitHub updates:
 
 1. Bump the plugin version in `cookie-consent-by-osano.php` and update the changelog/docs.
 2. Commit and push the changes.
-3. Create and push a Git tag such as `v0.2.2`.
+3. Create and push a Git tag such as `v0.3.0`.
 4. Let GitHub Actions run `.github/workflows/release.yml`.
 5. Confirm the workflow attached `cookie-consent-by-osano.zip` to the GitHub release.
 6. WordPress sites using the plugin will detect the newer release through the updater library.
@@ -166,6 +223,7 @@ What it currently covers:
 - default option values
 - option sanitization and validation behavior
 - frontend config generation
+- deferred script normalization
 - policy URL filtering
 - custom CSS trimming
 - activation default seeding and merge behavior
@@ -187,8 +245,4 @@ See [CREDITS.md](CREDITS.md) for third-party credits and source attributions.
 
 ## Next Steps
 
-1. Add browser-level or WordPress integration tests once the frontend behavior stabilizes further.
-2. Verify the EU-only display flow using an EU proxy or test environment.
-3. Confirm the ipapi fallback behavior is acceptable for your legal/compliance preference.
-4. Add consent-dependent integrations that react to the custom browser events.
-5. Decide whether custom CSS should remain plain text or move to a stricter admin-only styling model.
+1. Add browser-level or WordPress integration tests that verify deferred scripts stay blocked until consent allows them.

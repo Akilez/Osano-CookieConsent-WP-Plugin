@@ -6,6 +6,8 @@
   window.ccboCookieConsentLoaded = true;
 
   var LOCATION_CACHE_KEY = 'ccboCookieConsentLocationV1';
+  var loadedDeferredScripts = {};
+  var consentBypass = false;
   var EU_COUNTRY_CODES = [
     'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
     'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
@@ -21,18 +23,109 @@
   }
 
   function dispatchConsentEvent(name, instance) {
-    var status = '';
-    var hasConsented = false;
-
-    if (instance && typeof instance.status === 'string') {
-      status = instance.status;
-      hasConsented = status === 'allow' || status === 'dismiss';
-    }
+    var status = getConsentStatus(instance);
+    var allowsTracking = consentAllowsTracking(status, getConsentMode(instance));
 
     dispatchEvent(name, {
       status: status,
-      hasConsented: hasConsented,
+      hasConsented: allowsTracking,
+      allowsTracking: allowsTracking,
       instance: instance || null
+    });
+  }
+
+  function getConsentMode(instance) {
+    if (
+      instance &&
+      instance.options &&
+      typeof instance.options.type === 'string'
+    ) {
+      return instance.options.type;
+    }
+
+    if (
+      window.ccboCookieConsent &&
+      typeof window.ccboCookieConsent.getConfig === 'function'
+    ) {
+      return window.ccboCookieConsent.getConfig().type || 'opt-in';
+    }
+
+    return 'opt-in';
+  }
+
+  function getCookieValue(name) {
+    var encodedName = name + '=';
+    var parts = document.cookie ? document.cookie.split(';') : [];
+    var index;
+
+    for (index = 0; index < parts.length; index += 1) {
+      var cookie = parts[index].replace(/^\s+/, '');
+
+      if (cookie.indexOf(encodedName) === 0) {
+        return cookie.substring(encodedName.length);
+      }
+    }
+
+    return '';
+  }
+
+  function getConsentStatus(instance) {
+    if (instance && typeof instance.status === 'string') {
+      return instance.status;
+    }
+
+    if (
+      window.ccboCookieConsent &&
+      typeof window.ccboCookieConsent.getStatus === 'function'
+    ) {
+      return window.ccboCookieConsent.getStatus();
+    }
+
+    return '';
+  }
+
+  function consentAllowsTracking(status, mode) {
+    if (consentBypass) {
+      return true;
+    }
+
+    if (status === 'deny') {
+      return false;
+    }
+
+    if (mode === 'info') {
+      return true;
+    }
+
+    if (mode === 'opt-out') {
+      return status !== 'deny';
+    }
+
+    return status === 'allow';
+  }
+
+  function syncGa4Consent() {
+    if (
+      !window.ccboCookieConsent ||
+      typeof window.ccboCookieConsent.getConfig !== 'function'
+    ) {
+      return;
+    }
+
+    var config = window.ccboCookieConsent.getConfig();
+
+    if (
+      !config.ga4 ||
+      config.ga4.enabled !== true ||
+      typeof window.gtag !== 'function'
+    ) {
+      return;
+    }
+
+    window.gtag('consent', 'update', {
+      analytics_storage: window.ccboCookieConsent.allowsTracking()
+        ? 'granted'
+        : 'denied'
     });
   }
 
@@ -153,24 +246,146 @@
       return;
     }
 
-    if (typeof config.onInitialise !== 'function') {
-      config.onInitialise = function () {
-        dispatchConsentEvent('ccboCookieConsentInitialised', this);
-      };
-    }
+    var originalOnInitialise = typeof config.onInitialise === 'function'
+      ? config.onInitialise
+      : null;
+    var originalOnStatusChange = typeof config.onStatusChange === 'function'
+      ? config.onStatusChange
+      : null;
 
-    if (typeof config.onStatusChange !== 'function') {
-      config.onStatusChange = function () {
-        dispatchConsentEvent('ccboCookieConsentChanged', this);
-      };
-    }
+    config.onInitialise = function () {
+      if (originalOnInitialise) {
+        originalOnInitialise.apply(this, arguments);
+      }
+
+      dispatchConsentEvent('ccboCookieConsentInitialised', this);
+      maybeLoadDeferredScripts();
+      syncGa4Consent();
+    };
+
+    config.onStatusChange = function () {
+      if (originalOnStatusChange) {
+        originalOnStatusChange.apply(this, arguments);
+      }
+
+      dispatchConsentEvent('ccboCookieConsentChanged', this);
+      maybeLoadDeferredScripts();
+      syncGa4Consent();
+    };
 
     window.cookieconsent.initialise(config);
+  }
+
+  function getDeferredScripts() {
+    if (
+      !window.ccboCookieConsent ||
+      typeof window.ccboCookieConsent.getConfig !== 'function'
+    ) {
+      return [];
+    }
+
+    var config = window.ccboCookieConsent.getConfig();
+
+    return Array.isArray(config.deferredScripts) ? config.deferredScripts : [];
+  }
+
+  function applyScriptAttributes(element, attributes) {
+    if (!attributes || typeof attributes !== 'object') {
+      return;
+    }
+
+    Object.keys(attributes).forEach(function (name) {
+      var value = attributes[name];
+
+      if (typeof value === 'boolean') {
+        if (value) {
+          element.setAttribute(name, name);
+        }
+
+        return;
+      }
+
+      if (value !== null && value !== undefined && value !== '') {
+        element.setAttribute(name, String(value));
+      }
+    });
+  }
+
+  function loadDeferredScript(script) {
+    if (!script || typeof script !== 'object' || !script.id) {
+      return;
+    }
+
+    if (loadedDeferredScripts[script.id]) {
+      return;
+    }
+
+    loadedDeferredScripts[script.id] = true;
+
+    var element = document.createElement('script');
+    applyScriptAttributes(element, script.attributes);
+
+    if (script.src) {
+      element.src = script.src;
+    }
+
+    if (script.inline) {
+      element.text = script.inline;
+    }
+
+    document.head.appendChild(element);
+
+    dispatchEvent('ccboCookieConsentDeferredScriptLoaded', {
+      id: script.id,
+      src: script.src || '',
+      hasInline: !!script.inline
+    });
+
+    syncGa4Consent();
+  }
+
+  function maybeLoadDeferredScripts() {
+    if (
+      !window.ccboCookieConsent ||
+      typeof window.ccboCookieConsent.allowsTracking !== 'function' ||
+      !window.ccboCookieConsent.allowsTracking()
+    ) {
+      return;
+    }
+
+    getDeferredScripts().forEach(loadDeferredScript);
+  }
+
+  function initializeConsentApi(config) {
+    window.ccboCookieConsent = {
+      getConfig: function () {
+        return config || {};
+      },
+      getStatus: function () {
+        if (!config || !config.cookie || !config.cookie.name) {
+          return '';
+        }
+
+        return getCookieValue(config.cookie.name);
+      },
+      hasAnswered: function () {
+        var status = this.getStatus();
+        return status === 'allow' || status === 'deny' || status === 'dismiss';
+      },
+      allowsTracking: function () {
+        return consentAllowsTracking(this.getStatus(), config.type || 'opt-in');
+      },
+      loadDeferredScripts: function () {
+        maybeLoadDeferredScripts();
+      }
+    };
   }
 
   function initialize() {
     var config = window.ccboCookieConsentConfig || {};
     var locationSettings = getLocationSettings(config);
+
+    initializeConsentApi(config);
 
     if (!locationSettings) {
       initializeConsent(config);
@@ -197,10 +412,12 @@
       config.law.countryCode = locationData.countryCode;
 
       if (!locationData.inEu) {
+        consentBypass = true;
         dispatchEvent('ccboCookieConsentSkipped', {
           reason: 'non-eu-visitor',
           countryCode: locationData.countryCode
         });
+        maybeLoadDeferredScripts();
         return;
       }
 

@@ -66,6 +66,10 @@ class CCBO_Cookie_Consent_Settings {
 				'title'    => __( 'Location Services', 'cookie-consent-by-osano' ),
 				'callback' => array( $this, 'render_location_section' ),
 			),
+			'ccbo_cookie_consent_integrations' => array(
+				'title'    => __( 'Integrations', 'cookie-consent-by-osano' ),
+				'callback' => array( $this, 'render_integrations_section' ),
+			),
 			'ccbo_cookie_consent_styling'  => array(
 				'title'    => __( 'Styling', 'cookie-consent-by-osano' ),
 				'callback' => array( $this, 'render_styling_section' ),
@@ -85,6 +89,7 @@ class CCBO_Cookie_Consent_Settings {
 		$this->register_content_fields();
 		$this->register_cookie_fields();
 		$this->register_location_fields();
+		$this->register_integrations_fields();
 		$this->register_styling_fields();
 	}
 
@@ -283,6 +288,29 @@ class CCBO_Cookie_Consent_Settings {
 		);
 	}
 
+	private function register_integrations_fields() {
+		$this->add_field(
+			'ga4_enabled',
+			__( 'Google Analytics 4', 'cookie-consent-by-osano' ),
+			'checkbox',
+			'ccbo_cookie_consent_integrations',
+			array(
+				'label'       => __( 'Load Google Analytics 4 through the consent gate.', 'cookie-consent-by-osano' ),
+				'description' => __( 'When enabled, the plugin will only inject the GA4 library when the current consent mode allows analytics to run.', 'cookie-consent-by-osano' ),
+			)
+		);
+
+		$this->add_field(
+			'ga4_measurement_id',
+			__( 'GA4 measurement ID', 'cookie-consent-by-osano' ),
+			'text',
+			'ccbo_cookie_consent_integrations',
+			array(
+				'description' => __( 'Example: G-XXXXXXXXXX. Leave blank to keep GA4 disabled even if the checkbox is on.', 'cookie-consent-by-osano' ),
+			)
+		);
+	}
+
 	public function register_admin_page() {
 		add_options_page(
 			__( 'Cookie Consent by Osano', 'cookie-consent-by-osano' ),
@@ -389,6 +417,8 @@ class CCBO_Cookie_Consent_Settings {
 			'location_service_url'         => isset( $input['location_service_url'] ) ? esc_url_raw( trim( (string) $input['location_service_url'] ) ) : $defaults['location_service_url'],
 			'location_service_timeout'     => isset( $input['location_service_timeout'] ) ? max( 500, absint( $input['location_service_timeout'] ) ) : $defaults['location_service_timeout'],
 			'location_service_cache_hours' => isset( $input['location_service_cache_hours'] ) ? max( 1, absint( $input['location_service_cache_hours'] ) ) : $defaults['location_service_cache_hours'],
+			'ga4_enabled'                  => ! empty( $input['ga4_enabled'] ),
+			'ga4_measurement_id'           => isset( $input['ga4_measurement_id'] ) ? $this->sanitize_measurement_id( $input['ga4_measurement_id'] ) : $defaults['ga4_measurement_id'],
 			'palette_popup_background'     => $this->sanitize_color_value( $input, 'palette_popup_background', $defaults['palette_popup_background'] ),
 			'palette_popup_text'           => $this->sanitize_color_value( $input, 'palette_popup_text', $defaults['palette_popup_text'] ),
 			'palette_button_background'    => $this->sanitize_color_value( $input, 'palette_button_background', $defaults['palette_button_background'] ),
@@ -432,6 +462,8 @@ class CCBO_Cookie_Consent_Settings {
 			'location_service_url'         => 'https://ipapi.co/json/',
 			'location_service_timeout'     => 3000,
 			'location_service_cache_hours' => 24,
+			'ga4_enabled'                  => false,
+			'ga4_measurement_id'           => '',
 			'palette_popup_background'     => '#1f2937',
 			'palette_popup_text'           => '#f9fafb',
 			'palette_button_background'    => '#2563eb',
@@ -466,6 +498,11 @@ class CCBO_Cookie_Consent_Settings {
 				'section'  => 'ccbo_cookie_consent_location',
 				'callback' => array( $this, 'render_location_section' ),
 			),
+			'integrations' => array(
+				'label'    => __( 'Integrations', 'cookie-consent-by-osano' ),
+				'section'  => 'ccbo_cookie_consent_integrations',
+				'callback' => array( $this, 'render_integrations_section' ),
+			),
 			'styling'  => array(
 				'label'    => __( 'Styling', 'cookie-consent-by-osano' ),
 				'section'  => 'ccbo_cookie_consent_styling',
@@ -492,6 +529,10 @@ class CCBO_Cookie_Consent_Settings {
 
 	public function render_styling_section() {
 		echo '<p>' . esc_html__( 'Set the default banner colors and add optional CSS overrides.', 'cookie-consent-by-osano' ) . '</p>';
+	}
+
+	public function render_integrations_section() {
+		echo '<p>' . esc_html__( 'Turn on built-in consent-aware integrations for services that should not load before consent allows them.', 'cookie-consent-by-osano' ) . '</p>';
 	}
 
 	private function render_styling_fields_grouped() {
@@ -616,6 +657,16 @@ class CCBO_Cookie_Consent_Settings {
 					array( 'title' => __( 'Additional CSS', 'cookie-consent-by-osano' ), 'body' => __( 'Use custom CSS only when the built-in settings are not enough. It is best for spacing, typography, and edge-case adjustments.', 'cookie-consent-by-osano' ) ),
 				),
 			),
+			'integrations' => array(
+				'eyebrow' => __( 'Tracking Gate', 'cookie-consent-by-osano' ),
+				'title'   => __( 'Load Analytics Only When Consent Allows It', 'cookie-consent-by-osano' ),
+				'intro'   => __( 'Use this section for services that should not load until the plugin has determined that the current visitor and consent mode allow them.', 'cookie-consent-by-osano' ),
+				'items'   => array(
+					array( 'title' => __( 'Google Analytics 4', 'cookie-consent-by-osano' ), 'body' => __( 'This built-in integration loads the GA4 library through the plugin consent gate instead of requiring custom PHP on each site.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'Measurement ID', 'cookie-consent-by-osano' ), 'body' => __( 'Enter the GA4 measurement ID exactly as provided by Google, such as G-XXXXXXXXXX.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'What it does not cover', 'cookie-consent-by-osano' ), 'body' => __( 'If Google Analytics is already hardcoded elsewhere in the theme or another plugin, that original snippet still needs to be removed.', 'cookie-consent-by-osano' ) ),
+				),
+			),
 		);
 
 		$panel = isset( $panels[ $tab_key ] ) ? $panels[ $tab_key ] : $panels['general'];
@@ -719,5 +770,16 @@ class CCBO_Cookie_Consent_Settings {
 	private function sanitize_policy_url( $url ) {
 		$url = trim( (string) $url );
 		return '' === $url ? '' : esc_url_raw( $url );
+	}
+
+	private function sanitize_measurement_id( $value ) {
+		$value = strtoupper( trim( (string) $value ) );
+		$value = preg_replace( '/[^A-Z0-9\-]/', '', $value );
+
+		if ( preg_match( '/^G\-[A-Z0-9]+$/', $value ) ) {
+			return $value;
+		}
+
+		return '';
 	}
 }

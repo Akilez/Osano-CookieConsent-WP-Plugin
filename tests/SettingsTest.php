@@ -8,6 +8,8 @@ function test_settings_default_options() {
     ccbo_assert_same( true, $defaults['enabled'], 'Banner should default to enabled.' );
     ccbo_assert_same( false, $defaults['enable_location_services'], 'Location services should default to disabled.' );
     ccbo_assert_same( 'https://ipapi.co/json/', $defaults['location_service_url'], 'ipapi should be the default location endpoint.' );
+    ccbo_assert_same( false, $defaults['ga4_enabled'], 'GA4 should default to disabled.' );
+    ccbo_assert_same( '', $defaults['ga4_measurement_id'], 'GA4 measurement ID should default to blank.' );
     ccbo_assert_same( '#1f2937', $defaults['palette_popup_background'], 'Banner background default changed unexpectedly.' );
 }
 
@@ -33,6 +35,8 @@ function test_settings_sanitize_options() {
             'location_service_url'         => ' https://ipapi.co/json/ ',
             'location_service_timeout'     => '100',
             'location_service_cache_hours' => '0',
+            'ga4_enabled'                  => '1',
+            'ga4_measurement_id'           => ' g-Te_st123! ',
             'palette_popup_background'     => '#ABCDEF',
             'palette_popup_text'           => 'bad-color',
             'palette_button_background'    => '#123456',
@@ -58,6 +62,8 @@ function test_settings_sanitize_options() {
     ccbo_assert_same( 1, $result['expiry_days'], 'Cookie expiry should have a minimum of one day.' );
     ccbo_assert_same( 500, $result['location_service_timeout'], 'Location timeout should have a minimum of 500ms.' );
     ccbo_assert_same( 1, $result['location_service_cache_hours'], 'Location cache should have a minimum of one hour.' );
+    ccbo_assert_true( $result['ga4_enabled'], 'GA4 toggle should sanitize to true.' );
+    ccbo_assert_same( 'G-TEST123', $result['ga4_measurement_id'], 'GA4 measurement ID should normalize to an uppercase Google Analytics ID.' );
     ccbo_assert_same( '#abcdef', $result['palette_popup_background'], 'Valid hex colors should normalize and persist.' );
     ccbo_assert_same( '#f9fafb', $result['palette_popup_text'], 'Invalid hex colors should fall back to defaults.' );
     ccbo_assert_same( '.ccbo{color:red;}', $result['custom_css'], 'Custom CSS should be stripped down to raw CSS text.' );
