@@ -67,6 +67,26 @@ function test_assets_frontend_config_includes_normalized_deferred_scripts() {
         array(
             'ga4_enabled'        => true,
             'ga4_measurement_id' => 'G-TEST123',
+            'script_gate_entries' => array(
+                array(
+                    'enabled'  => true,
+                    'label'    => 'Marketing Pixel',
+                    'category' => 'marketing',
+                    'src'      => 'https://example.com/pixel.js',
+                    'inline'   => '',
+                    'async'    => true,
+                    'defer'    => false,
+                ),
+                array(
+                    'enabled'  => false,
+                    'label'    => 'Disabled Analytics',
+                    'category' => 'analytics',
+                    'src'      => 'https://example.com/disabled.js',
+                    'inline'   => '',
+                    'async'    => true,
+                    'defer'    => false,
+                ),
+            ),
         )
     );
 
@@ -99,20 +119,23 @@ function test_assets_frontend_config_includes_normalized_deferred_scripts() {
     $config = ccbo_invoke_private_method( $assets, 'get_frontend_config' );
 
     ccbo_assert_array_has_key( 'deferredScripts', $config, 'Frontend config should include deferred scripts.' );
-    ccbo_assert_same( 4, count( $config['deferredScripts'] ), 'Built-in GA4 scripts and valid custom deferred scripts should be included.' );
+    ccbo_assert_same( 5, count( $config['deferredScripts'] ), 'Built-in GA4 scripts, enabled admin scripts, and valid custom deferred scripts should be included.' );
     ccbo_assert_same( true, $config['ga4']['enabled'], 'GA4 config should be enabled when the measurement ID is present.' );
     ccbo_assert_same( 'G-TEST123', $config['ga4']['measurementId'], 'GA4 measurement ID should flow into the frontend config.' );
     ccbo_assert_same( 'ccbo_ga4_library', $config['deferredScripts'][0]['id'], 'Built-in GA4 library script should be prepended.' );
-    ccbo_assert_same( 'googleanalytics', $config['deferredScripts'][2]['id'], 'Deferred script ids should be sanitized.' );
-    ccbo_assert_same( 'https://www.googletagmanager.com/gtag/js?id=G-TEST123', $config['deferredScripts'][2]['src'], 'Deferred script URLs should be trimmed and preserved.' );
+    ccbo_assert_same( 'ccbo_marketing_marketingpixel_1', $config['deferredScripts'][2]['id'], 'Enabled admin script ids should be generated from their category and label.' );
+    ccbo_assert_same( 'https://example.com/pixel.js', $config['deferredScripts'][2]['src'], 'Enabled admin script URLs should flow into deferred scripts.' );
+    ccbo_assert_same( array( 'async' => true ), $config['deferredScripts'][2]['attributes'], 'Enabled admin script attributes should flow into deferred scripts.' );
+    ccbo_assert_same( 'googleanalytics', $config['deferredScripts'][3]['id'], 'Deferred script ids should be sanitized.' );
+    ccbo_assert_same( 'https://www.googletagmanager.com/gtag/js?id=G-TEST123', $config['deferredScripts'][3]['src'], 'Deferred script URLs should be trimmed and preserved.' );
     ccbo_assert_same(
         array(
             'async'     => true,
             'defer'     => false,
             'data-site' => 'main',
         ),
-        $config['deferredScripts'][2]['attributes'],
+        $config['deferredScripts'][3]['attributes'],
         'Deferred script attributes should be normalized and unsafe attributes should be removed.'
     );
-    ccbo_assert_same( 'window.dataLayer = window.dataLayer || [];', $config['deferredScripts'][3]['inline'], 'Inline deferred scripts should be preserved.' );
+    ccbo_assert_same( 'window.dataLayer = window.dataLayer || [];', $config['deferredScripts'][4]['inline'], 'Inline deferred scripts should be preserved.' );
 }

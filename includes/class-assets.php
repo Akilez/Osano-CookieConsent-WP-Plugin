@@ -196,6 +196,7 @@ class CCBO_Cookie_Consent_Assets {
 	private function get_deferred_scripts() {
 		$scripts    = array_merge(
 			$this->get_built_in_deferred_scripts(),
+			$this->get_admin_deferred_scripts(),
 			(array) apply_filters( 'ccbo_cookie_consent_deferred_scripts', array() )
 		);
 		$normalized = array();
@@ -235,6 +236,58 @@ class CCBO_Cookie_Consent_Assets {
 		}
 
 		return $normalized;
+	}
+
+	/**
+	 * Return deferred scripts configured from the admin settings screen.
+	 *
+	 * @return array
+	 */
+	private function get_admin_deferred_scripts() {
+		$options = $this->settings->get_options();
+		$entries = isset( $options['script_gate_entries'] ) && is_array( $options['script_gate_entries'] )
+			? $options['script_gate_entries']
+			: array();
+		$scripts = array();
+
+		foreach ( $entries as $index => $entry ) {
+			if ( ! is_array( $entry ) || empty( $entry['enabled'] ) ) {
+				continue;
+			}
+
+			$src    = isset( $entry['src'] ) ? trim( (string) $entry['src'] ) : '';
+			$inline = isset( $entry['inline'] ) ? trim( (string) $entry['inline'] ) : '';
+
+			if ( '' === $src && '' === $inline ) {
+				continue;
+			}
+
+			$category = isset( $entry['category'] ) ? sanitize_key( $entry['category'] ) : 'analytics';
+			$label    = isset( $entry['label'] ) ? sanitize_key( $entry['label'] ) : '';
+
+			if ( '' === $label ) {
+				$label = 'script';
+			}
+
+			$attributes = array();
+
+			if ( ! empty( $entry['async'] ) ) {
+				$attributes['async'] = true;
+			}
+
+			if ( ! empty( $entry['defer'] ) ) {
+				$attributes['defer'] = true;
+			}
+
+			$scripts[] = array(
+				'id'         => 'ccbo_' . $category . '_' . $label . '_' . absint( $index + 1 ),
+				'src'        => $src,
+				'inline'     => $inline,
+				'attributes' => $attributes,
+			);
+		}
+
+		return $scripts;
 	}
 
 	/**

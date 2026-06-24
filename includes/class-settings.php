@@ -309,6 +309,16 @@ class CCBO_Cookie_Consent_Settings {
 				'description' => __( 'Example: G-XXXXXXXXXX. Leave blank to keep GA4 disabled even if the checkbox is on.', 'cookie-consent-by-osano' ),
 			)
 		);
+
+		$this->add_field(
+			'script_gate_entries',
+			__( 'Script gate', 'cookie-consent-by-osano' ),
+			'script_gate_entries',
+			'ccbo_cookie_consent_integrations',
+			array(
+				'description' => __( 'Add analytics or marketing scripts that should load only when consent allows tracking.', 'cookie-consent-by-osano' ),
+			)
+		);
 	}
 
 	public function register_admin_page() {
@@ -419,6 +429,7 @@ class CCBO_Cookie_Consent_Settings {
 			'location_service_cache_hours' => isset( $input['location_service_cache_hours'] ) ? max( 1, absint( $input['location_service_cache_hours'] ) ) : $defaults['location_service_cache_hours'],
 			'ga4_enabled'                  => ! empty( $input['ga4_enabled'] ),
 			'ga4_measurement_id'           => isset( $input['ga4_measurement_id'] ) ? $this->sanitize_measurement_id( $input['ga4_measurement_id'] ) : $defaults['ga4_measurement_id'],
+			'script_gate_entries'          => isset( $input['script_gate_entries'] ) ? $this->sanitize_script_gate_entries( $input['script_gate_entries'] ) : $defaults['script_gate_entries'],
 			'palette_popup_background'     => $this->sanitize_color_value( $input, 'palette_popup_background', $defaults['palette_popup_background'] ),
 			'palette_popup_text'           => $this->sanitize_color_value( $input, 'palette_popup_text', $defaults['palette_popup_text'] ),
 			'palette_button_background'    => $this->sanitize_color_value( $input, 'palette_button_background', $defaults['palette_button_background'] ),
@@ -464,6 +475,7 @@ class CCBO_Cookie_Consent_Settings {
 			'location_service_cache_hours' => 24,
 			'ga4_enabled'                  => false,
 			'ga4_measurement_id'           => '',
+			'script_gate_entries'          => array(),
 			'palette_popup_background'     => '#1f2937',
 			'palette_popup_text'           => '#f9fafb',
 			'palette_button_background'    => '#2563eb',
@@ -664,7 +676,8 @@ class CCBO_Cookie_Consent_Settings {
 				'items'   => array(
 					array( 'title' => __( 'Google Analytics 4', 'cookie-consent-by-osano' ), 'body' => __( 'This built-in integration loads the GA4 library through the plugin consent gate instead of requiring custom PHP on each site.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Measurement ID', 'cookie-consent-by-osano' ), 'body' => __( 'Enter the GA4 measurement ID exactly as provided by Google, such as G-XXXXXXXXXX.', 'cookie-consent-by-osano' ) ),
-					array( 'title' => __( 'What it does not cover', 'cookie-consent-by-osano' ), 'body' => __( 'If Google Analytics is already hardcoded elsewhere in the theme or another plugin, that original snippet still needs to be removed.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'Script gate', 'cookie-consent-by-osano' ), 'body' => __( 'Paste analytics or marketing script URLs here when they should wait for consent before loading.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'What it does not cover', 'cookie-consent-by-osano' ), 'body' => __( 'If tracking is already hardcoded elsewhere in the theme or another plugin, that original snippet still needs to be removed or moved into this gate.', 'cookie-consent-by-osano' ) ),
 				),
 			),
 		);
@@ -687,6 +700,109 @@ class CCBO_Cookie_Consent_Settings {
 		<?php
 	}
 
+	private function render_script_gate_field( $key, $description ) {
+		$options = $this->get_options();
+		$entries = isset( $options[ $key ] ) && is_array( $options[ $key ] ) ? $options[ $key ] : array();
+
+		if ( empty( $entries ) ) {
+			$entries = array(
+				array(
+					'enabled'  => true,
+					'label'    => '',
+					'category' => 'analytics',
+					'src'      => '',
+					'inline'   => '',
+					'async'    => true,
+					'defer'    => false,
+				),
+			);
+		}
+		?>
+		<div class="ccbo-script-gate" data-next-index="<?php echo esc_attr( count( $entries ) ); ?>">
+			<p class="description"><?php echo esc_html( $description ); ?></p>
+			<div class="ccbo-script-gate-rows">
+				<?php foreach ( array_values( $entries ) as $index => $entry ) : ?>
+					<?php $this->render_script_gate_row( $index, $entry, false ); ?>
+				<?php endforeach; ?>
+			</div>
+			<button type="button" class="button button-secondary ccbo-script-gate-add">
+				<?php echo esc_html__( 'Add script', 'cookie-consent-by-osano' ); ?>
+			</button>
+			<div class="ccbo-script-gate-template" hidden>
+				<?php $this->render_script_gate_row( '__index__', array( 'enabled' => true, 'async' => true ), true ); ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	private function render_script_gate_row( $index, $entry, $is_template ) {
+		$entry = is_array( $entry ) ? $entry : array();
+		$entry = array_merge(
+			array(
+				'enabled'  => false,
+				'label'    => '',
+				'category' => 'analytics',
+				'src'      => '',
+				'inline'   => '',
+				'async'    => false,
+				'defer'    => false,
+			),
+			$entry
+		);
+		$base_name = self::OPTION_KEY . '[script_gate_entries][' . $index . ']';
+		$id_base   = 'ccbo-script-gate-' . $index;
+		$disabled  = $is_template ? ' disabled="disabled"' : '';
+		?>
+		<div class="ccbo-script-gate-row">
+			<div class="ccbo-script-gate-row-header">
+				<label for="<?php echo esc_attr( $id_base . '-enabled' ); ?>">
+					<input id="<?php echo esc_attr( $id_base . '-enabled' ); ?>" name="<?php echo esc_attr( $base_name . '[enabled]' ); ?>" type="checkbox" value="1"<?php echo ! empty( $entry['enabled'] ) ? ' checked="checked"' : ''; ?><?php echo $disabled; ?> />
+					<?php echo esc_html__( 'Enabled', 'cookie-consent-by-osano' ); ?>
+				</label>
+				<button type="button" class="button-link-delete ccbo-script-gate-remove"<?php echo $disabled; ?>>
+					<?php echo esc_html__( 'Remove', 'cookie-consent-by-osano' ); ?>
+				</button>
+			</div>
+
+			<div class="ccbo-script-gate-grid">
+				<label for="<?php echo esc_attr( $id_base . '-label' ); ?>">
+					<span><?php echo esc_html__( 'Label', 'cookie-consent-by-osano' ); ?></span>
+					<input id="<?php echo esc_attr( $id_base . '-label' ); ?>" name="<?php echo esc_attr( $base_name . '[label]' ); ?>" type="text" value="<?php echo esc_attr( $entry['label'] ); ?>" class="regular-text"<?php echo $disabled; ?> />
+				</label>
+
+				<label for="<?php echo esc_attr( $id_base . '-category' ); ?>">
+					<span><?php echo esc_html__( 'Category', 'cookie-consent-by-osano' ); ?></span>
+					<select id="<?php echo esc_attr( $id_base . '-category' ); ?>" name="<?php echo esc_attr( $base_name . '[category]' ); ?>"<?php echo $disabled; ?>>
+						<option value="analytics"<?php echo 'analytics' === $entry['category'] ? ' selected="selected"' : ''; ?>><?php echo esc_html__( 'Analytics', 'cookie-consent-by-osano' ); ?></option>
+						<option value="marketing"<?php echo 'marketing' === $entry['category'] ? ' selected="selected"' : ''; ?>><?php echo esc_html__( 'Marketing', 'cookie-consent-by-osano' ); ?></option>
+					</select>
+				</label>
+			</div>
+
+			<label class="ccbo-script-gate-full" for="<?php echo esc_attr( $id_base . '-src' ); ?>">
+				<span><?php echo esc_html__( 'Script URL', 'cookie-consent-by-osano' ); ?></span>
+				<input id="<?php echo esc_attr( $id_base . '-src' ); ?>" name="<?php echo esc_attr( $base_name . '[src]' ); ?>" type="url" value="<?php echo esc_attr( $entry['src'] ); ?>" class="large-text code" placeholder="https://example.com/script.js"<?php echo $disabled; ?> />
+			</label>
+
+			<label class="ccbo-script-gate-full" for="<?php echo esc_attr( $id_base . '-inline' ); ?>">
+				<span><?php echo esc_html__( 'Inline script', 'cookie-consent-by-osano' ); ?></span>
+				<textarea id="<?php echo esc_attr( $id_base . '-inline' ); ?>" name="<?php echo esc_attr( $base_name . '[inline]' ); ?>" rows="5" class="large-text code" placeholder="window.example = window.example || {};"<?php echo $disabled; ?>><?php echo esc_textarea( $entry['inline'] ); ?></textarea>
+			</label>
+
+			<div class="ccbo-script-gate-flags">
+				<label for="<?php echo esc_attr( $id_base . '-async' ); ?>">
+					<input id="<?php echo esc_attr( $id_base . '-async' ); ?>" name="<?php echo esc_attr( $base_name . '[async]' ); ?>" type="checkbox" value="1"<?php echo ! empty( $entry['async'] ) ? ' checked="checked"' : ''; ?><?php echo $disabled; ?> />
+					<?php echo esc_html__( 'Async', 'cookie-consent-by-osano' ); ?>
+				</label>
+				<label for="<?php echo esc_attr( $id_base . '-defer' ); ?>">
+					<input id="<?php echo esc_attr( $id_base . '-defer' ); ?>" name="<?php echo esc_attr( $base_name . '[defer]' ); ?>" type="checkbox" value="1"<?php echo ! empty( $entry['defer'] ) ? ' checked="checked"' : ''; ?><?php echo $disabled; ?> />
+					<?php echo esc_html__( 'Defer', 'cookie-consent-by-osano' ); ?>
+				</label>
+			</div>
+		</div>
+		<?php
+	}
+
 	private function add_field( $key, $label, $type, $section, $args = array() ) {
 		$args['key']  = $key;
 		$args['type'] = $type;
@@ -704,6 +820,11 @@ class CCBO_Cookie_Consent_Settings {
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 
 		if ( in_array( $key, array( 'palette_popup_background', 'palette_popup_text', 'palette_button_background', 'palette_button_text', 'palette_button_border', 'palette_highlight_text', 'custom_css' ), true ) ) {
+			return;
+		}
+
+		if ( 'script_gate_entries' === $type ) {
+			$this->render_script_gate_field( $key, $description );
 			return;
 		}
 
@@ -781,5 +902,70 @@ class CCBO_Cookie_Consent_Settings {
 		}
 
 		return '';
+	}
+
+	private function sanitize_script_gate_entries( $entries ) {
+		if ( ! is_array( $entries ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		$index     = 1;
+
+		foreach ( $entries as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+
+			$src    = isset( $entry['src'] ) ? esc_url_raw( trim( (string) $entry['src'] ) ) : '';
+			$inline = isset( $entry['inline'] ) ? $this->sanitize_script_gate_inline( $entry['inline'] ) : '';
+
+			if ( '' === $src && '' === $inline ) {
+				continue;
+			}
+
+			$label = isset( $entry['label'] ) ? sanitize_text_field( $entry['label'] ) : '';
+
+			if ( '' === $label ) {
+				$label = sprintf(
+					/* translators: %d: Script entry number. */
+					__( 'Script %d', 'cookie-consent-by-osano' ),
+					$index
+				);
+			}
+
+			$category = isset( $entry['category'] ) ? sanitize_text_field( $entry['category'] ) : 'analytics';
+
+			if ( ! in_array( $category, array( 'analytics', 'marketing' ), true ) ) {
+				$category = 'analytics';
+			}
+
+			$sanitized[] = array(
+				'enabled'  => ! empty( $entry['enabled'] ),
+				'label'    => $label,
+				'category' => $category,
+				'src'      => $src,
+				'inline'   => $inline,
+				'async'    => ! empty( $entry['async'] ),
+				'defer'    => ! empty( $entry['defer'] ),
+			);
+
+			$index++;
+		}
+
+		return $sanitized;
+	}
+
+	private function sanitize_script_gate_inline( $inline ) {
+		$inline = trim( (string) $inline );
+
+		if ( '' === $inline ) {
+			return '';
+		}
+
+		$inline = preg_replace( '/^\s*<script\b[^>]*>/i', '', $inline );
+		$inline = preg_replace( '/<\/script>\s*$/i', '', $inline );
+
+		return trim( wp_strip_all_tags( $inline ) );
 	}
 }

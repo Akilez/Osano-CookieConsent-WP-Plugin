@@ -4,7 +4,7 @@ Tags: cookies, privacy, gdpr, consent
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,7 +24,7 @@ Current features:
 * Optional ipapi-based location services for EU-only banner display
 * Configurable location lookup timeout and cache duration
 * Built-in Google Analytics 4 integration with consent-gated loading
-* Consent-aware deferred script loading for custom analytics or marketing snippets
+* Consent-aware deferred script loading for admin-managed custom analytics or marketing snippets
 * Banner color controls and additional CSS
 * Custom browser events for consent initialization and status changes
 * WordPress filters and actions for site-specific overrides
@@ -57,6 +57,10 @@ Yes. The plugin dispatches custom browser events and exposes WordPress hooks for
 
 Yes. The plugin now includes a built-in GA4 integration that loads through the consent gate when you enable it and provide a measurement ID.
 
+= Can I block other analytics or marketing scripts? =
+
+Yes. Add script URLs or inline script contents in `Settings > Cookie Consent > Integrations`. Scripts added there load only when the current consent mode allows tracking. Scripts hardcoded directly by another theme or plugin still need to be removed or moved into this gate.
+
 = How do I run the tests? =
 
 From the plugin root, run `php tests/run.php`. The test suite uses a lightweight WordPress shim and does not require Composer or PHPUnit.
@@ -66,6 +70,10 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
+
+= 0.3.1 =
+
+* Added admin-managed script gate entries for analytics and marketing scripts
 
 = 0.3.0 =
 

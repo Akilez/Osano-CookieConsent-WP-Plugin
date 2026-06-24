@@ -16,7 +16,7 @@ This plugin now includes:
 - ipapi-based location services for EU-only banner display
 - frontend config generation from saved admin settings
 - browser events for consent initialization, status changes, and location lookups
-- consent-gated deferred script loading for site-specific analytics and marketing integrations
+- consent-gated deferred script loading for admin-managed and site-specific analytics and marketing integrations
 - lightweight PHP functional tests that run without Composer or a WordPress test install
 - vendored GitHub update support via Plugin Update Checker
 - a GitHub Actions workflow that builds the release ZIP asset for tagged releases
@@ -84,6 +84,7 @@ Key configuration areas include:
 - cookie name, domain, path, and expiration
 - ipapi endpoint, timeout, and location cache duration
 - built-in Google Analytics 4 consent-gated loading
+- admin-managed analytics and marketing script entries that load through the consent gate
 - banner color controls and plain additional CSS
 
 All settings are stored under the option key `ccbo_cookie_consent_options`.
@@ -128,9 +129,18 @@ The plugin also exposes these WordPress extension points:
 
 ## Consent-Gated Scripts
 
-The plugin can now enforce consent-aware loading for scripts that are registered through the `ccbo_cookie_consent_deferred_scripts` filter.
+The plugin can now enforce consent-aware loading for scripts added in `Settings > Cookie Consent > Integrations` or registered through the `ccbo_cookie_consent_deferred_scripts` filter.
 
 It also includes a built-in Google Analytics 4 integration that uses the same consent gate when a measurement ID is configured in the admin.
+
+Admin script gate entries support:
+
+- label
+- enabled or disabled state
+- analytics or marketing category
+- external script URL
+- inline script contents
+- async and defer attributes
 
 Behavior:
 
@@ -176,7 +186,7 @@ Browser events now include consent state that site code can react to:
 
 Important limitation:
 
-- this only controls scripts registered through the plugin hook
+- this only controls scripts added to the plugin script gate or registered through the plugin hook
 - if a theme or another plugin hardcodes analytics, pixels, or tag manager snippets directly into the page, those scripts must be moved behind this gate or removed from their original source
 
 ## GitHub Updates
@@ -203,7 +213,7 @@ To ship a new version through GitHub updates:
 
 1. Bump the plugin version in `cookie-consent-by-osano.php` and update the changelog/docs.
 2. Commit and push the changes.
-3. Create and push a Git tag such as `v0.3.0`.
+3. Create and push a Git tag such as `v0.3.1`.
 4. Let GitHub Actions run `.github/workflows/release.yml`.
 5. Confirm the workflow attached `cookie-consent-by-osano.zip` to the GitHub release.
 6. WordPress sites using the plugin will detect the newer release through the updater library.
@@ -224,6 +234,7 @@ What it currently covers:
 - option sanitization and validation behavior
 - frontend config generation
 - deferred script normalization
+- admin script gate sanitization and frontend config output
 - policy URL filtering
 - custom CSS trimming
 - activation default seeding and merge behavior
@@ -245,4 +256,4 @@ See [CREDITS.md](CREDITS.md) for third-party credits and source attributions.
 
 ## Next Steps
 
-1. Add browser-level or WordPress integration tests that verify deferred scripts stay blocked until consent allows them.
+1. Add browser-level or WordPress integration tests that verify admin-managed deferred scripts stay blocked until consent allows them.

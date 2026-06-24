@@ -86,6 +86,71 @@
 	margin-top: 8px;
 }
 
+.ccbo-script-gate {
+	display: grid;
+	gap: 12px;
+	max-width: 780px;
+}
+
+.ccbo-script-gate-rows {
+	display: grid;
+	gap: 14px;
+}
+
+.ccbo-script-gate-row {
+	display: grid;
+	gap: 12px;
+	padding: 16px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.ccbo-script-gate-row-header,
+.ccbo-script-gate-flags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: center;
+}
+
+.ccbo-script-gate-row-header {
+	justify-content: space-between;
+}
+
+.ccbo-script-gate-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 180px;
+	gap: 14px;
+}
+
+.ccbo-script-gate label {
+	display: grid;
+	gap: 6px;
+}
+
+.ccbo-script-gate-row-header label,
+.ccbo-script-gate-flags label {
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.ccbo-script-gate label span {
+	font-weight: 600;
+}
+
+.ccbo-script-gate select,
+.ccbo-script-gate input[type="text"],
+.ccbo-script-gate input[type="url"],
+.ccbo-script-gate textarea {
+	width: 100%;
+}
+
+.ccbo-script-gate-add {
+	justify-self: start;
+}
+
 .ccbo-help-panel {
 	padding: 24px;
 	background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
@@ -147,5 +212,9 @@
 
 	.ccbo-style-field {
 		min-width: 0;
+	}
+
+	.ccbo-script-gate-grid {
+		grid-template-columns: 1fr;
 	}
 }
