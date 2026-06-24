@@ -158,12 +158,12 @@ class CCBO_Cookie_Consent_Settings {
 
 		$this->add_field(
 			'revokable',
-			__( 'Revokable', 'cookie-consent-by-osano' ),
+			__( 'Display Cookie Settings Tab', 'cookie-consent-by-osano' ),
 			'checkbox',
 			'ccbo_cookie_consent_general',
 			array(
-				'label'       => __( 'Allow visitors to reopen the consent UI after making a choice.', 'cookie-consent-by-osano' ),
-				'description' => __( 'This controls whether the banner can be reopened later.', 'cookie-consent-by-osano' ),
+				'label'       => __( 'Show the built-in floating tab visitors can use to reopen cookie settings.', 'cookie-consent-by-osano' ),
+				'description' => __( 'Shortcodes can also add cookie settings links or buttons anywhere on the site.', 'cookie-consent-by-osano' ),
 			)
 		);
 
@@ -276,6 +276,11 @@ class CCBO_Cookie_Consent_Settings {
 		$this->add_field( 'palette_button_text', __( 'Primary button text', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
 		$this->add_field( 'palette_button_border', __( 'Primary button border', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
 		$this->add_field( 'palette_highlight_text', __( 'Secondary action text', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
+		$this->add_field( 'reopen_button_background', __( 'Cookie settings button background', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
+		$this->add_field( 'reopen_button_text', __( 'Cookie settings button text', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
+		$this->add_field( 'reopen_button_border', __( 'Cookie settings button border', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
+		$this->add_field( 'attribution_text', __( 'Attribution text', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
+		$this->add_field( 'attribution_link', __( 'Attribution link', 'cookie-consent-by-osano' ), 'color', 'ccbo_cookie_consent_styling' );
 		$this->add_field(
 			'custom_css',
 			__( 'Additional CSS', 'cookie-consent-by-osano' ),
@@ -436,6 +441,11 @@ class CCBO_Cookie_Consent_Settings {
 			'palette_button_text'          => $this->sanitize_color_value( $input, 'palette_button_text', $defaults['palette_button_text'] ),
 			'palette_button_border'        => $this->sanitize_color_value( $input, 'palette_button_border', $defaults['palette_button_border'] ),
 			'palette_highlight_text'       => $this->sanitize_color_value( $input, 'palette_highlight_text', $defaults['palette_highlight_text'] ),
+			'reopen_button_background'     => $this->sanitize_color_value( $input, 'reopen_button_background', $defaults['reopen_button_background'] ),
+			'reopen_button_text'           => $this->sanitize_color_value( $input, 'reopen_button_text', $defaults['reopen_button_text'] ),
+			'reopen_button_border'         => $this->sanitize_color_value( $input, 'reopen_button_border', $defaults['reopen_button_border'] ),
+			'attribution_text'             => $this->sanitize_color_value( $input, 'attribution_text', $defaults['attribution_text'] ),
+			'attribution_link'             => $this->sanitize_color_value( $input, 'attribution_link', $defaults['attribution_link'] ),
 			'custom_css'                   => isset( $input['custom_css'] ) ? wp_strip_all_tags( $input['custom_css'] ) : $defaults['custom_css'],
 		);
 
@@ -482,6 +492,11 @@ class CCBO_Cookie_Consent_Settings {
 			'palette_button_text'          => '#ffffff',
 			'palette_button_border'        => '#2563eb',
 			'palette_highlight_text'       => '#f9fafb',
+			'reopen_button_background'     => '#ffffff',
+			'reopen_button_text'           => '#1f2937',
+			'reopen_button_border'         => '#1f2937',
+			'attribution_text'             => '#4b5563',
+			'attribution_link'             => '#2563eb',
 			'custom_css'                   => '',
 		);
 
@@ -568,6 +583,19 @@ class CCBO_Cookie_Consent_Settings {
 				<div class="ccbo-style-group-fields">
 					<?php $this->render_compact_field( 'palette_highlight_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
 				</div>
+
+                <h3><?php echo esc_html__( 'Cookie Settings Button', 'cookie-consent-by-osano' ); ?></h3>
+				<div class="ccbo-style-group-fields">
+					<?php $this->render_compact_field( 'reopen_button_background', __( 'Background', 'cookie-consent-by-osano' ), 'color' ); ?>
+					<?php $this->render_compact_field( 'reopen_button_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
+					<?php $this->render_compact_field( 'reopen_button_border', __( 'Border', 'cookie-consent-by-osano' ), 'color' ); ?>
+				</div>
+
+                <h3><?php echo esc_html__( 'Attribution', 'cookie-consent-by-osano' ); ?></h3>
+				<div class="ccbo-style-group-fields">
+					<?php $this->render_compact_field( 'attribution_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
+					<?php $this->render_compact_field( 'attribution_link', __( 'Link', 'cookie-consent-by-osano' ), 'color' ); ?>
+				</div>
 			</div>
 
 			<div class="ccbo-style-group">
@@ -623,6 +651,7 @@ class CCBO_Cookie_Consent_Settings {
 					array( 'title' => __( 'Enable banner', 'cookie-consent-by-osano' ), 'body' => __( 'Turn the banner on when the site should ask visitors about cookies. Turn it off if consent is being handled elsewhere.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Consent mode', 'cookie-consent-by-osano' ), 'body' => __( 'Use opt-in when tracking should wait for permission. Use opt-out when tracking may run unless a visitor declines. Use info when the banner is only informational.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Position and theme', 'cookie-consent-by-osano' ), 'body' => __( 'These affect where the banner appears and how much visual weight it carries on the page.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'Cookie settings tab', 'cookie-consent-by-osano' ), 'body' => __( 'Display Cookie Settings Tab shows the built-in floating control. Use the shortcode when you want a cookie settings button in a footer, policy page, or editor block.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Location services toggle', 'cookie-consent-by-osano' ), 'body' => __( 'Enable this when the banner should only appear for visitors detected in the EU. The actual provider settings live in the Location Services tab.', 'cookie-consent-by-osano' ) ),
 				),
 			),
@@ -666,7 +695,8 @@ class CCBO_Cookie_Consent_Settings {
 					array( 'title' => __( 'Banner colors', 'cookie-consent-by-osano' ), 'body' => __( 'Choose a background and text combination with strong contrast so the message stays readable on every page.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Primary button', 'cookie-consent-by-osano' ), 'body' => __( 'This is usually the most prominent action. Use a color that feels native to the site without overwhelming the content below it.', 'cookie-consent-by-osano' ) ),
 					array( 'title' => __( 'Secondary action', 'cookie-consent-by-osano' ), 'body' => __( 'Keep the alternate action visible and readable so the visitor can make a clear choice either way.', 'cookie-consent-by-osano' ) ),
-					array( 'title' => __( 'Additional CSS', 'cookie-consent-by-osano' ), 'body' => __( 'Use custom CSS only when the built-in settings are not enough. It is best for spacing, typography, and edge-case adjustments.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'Shortcode controls', 'cookie-consent-by-osano' ), 'body' => __( 'Set simple colors for the reopen button and attribution output.', 'cookie-consent-by-osano' ) ),
+					array( 'title' => __( 'Additional CSS', 'cookie-consent-by-osano' ), 'body' => __( 'Use custom CSS for spacing, typography, or edge cases.', 'cookie-consent-by-osano' ) ),
 				),
 			),
 			'integrations' => array(
@@ -819,7 +849,7 @@ class CCBO_Cookie_Consent_Settings {
 		$field_name  = self::OPTION_KEY . '[' . $key . ']';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 
-		if ( in_array( $key, array( 'palette_popup_background', 'palette_popup_text', 'palette_button_background', 'palette_button_text', 'palette_button_border', 'palette_highlight_text', 'custom_css' ), true ) ) {
+		if ( in_array( $key, array( 'palette_popup_background', 'palette_popup_text', 'palette_button_background', 'palette_button_text', 'palette_button_border', 'palette_highlight_text', 'reopen_button_background', 'reopen_button_text', 'reopen_button_border', 'attribution_text', 'attribution_link', 'custom_css' ), true ) ) {
 			return;
 		}
 

@@ -12,6 +12,8 @@ function test_settings_default_options() {
     ccbo_assert_same( '', $defaults['ga4_measurement_id'], 'GA4 measurement ID should default to blank.' );
     ccbo_assert_same( array(), $defaults['script_gate_entries'], 'Script gate entries should default to an empty list.' );
     ccbo_assert_same( '#1f2937', $defaults['palette_popup_background'], 'Banner background default changed unexpectedly.' );
+    ccbo_assert_same( '#ffffff', $defaults['reopen_button_background'], 'Reopen button background default changed unexpectedly.' );
+    ccbo_assert_same( '#4b5563', $defaults['attribution_text'], 'Attribution text default changed unexpectedly.' );
 }
 
 function test_settings_sanitize_options() {
@@ -68,6 +70,11 @@ function test_settings_sanitize_options() {
             'palette_button_text'          => '#ffffff',
             'palette_button_border'        => '#654321',
             'palette_highlight_text'       => '#FEDCBA',
+            'reopen_button_background'     => '#111111',
+            'reopen_button_text'           => '#222222',
+            'reopen_button_border'         => '#333333',
+            'attribution_text'             => '#444444',
+            'attribution_link'             => 'not-a-color',
             'custom_css'                   => '<style>.ccbo{color:red;}</style>',
         )
     );
@@ -103,5 +110,10 @@ function test_settings_sanitize_options() {
     ccbo_assert_true( $result['script_gate_entries'][1]['defer'], 'Defer should sanitize to true when checked.' );
     ccbo_assert_same( '#abcdef', $result['palette_popup_background'], 'Valid hex colors should normalize and persist.' );
     ccbo_assert_same( '#f9fafb', $result['palette_popup_text'], 'Invalid hex colors should fall back to defaults.' );
+    ccbo_assert_same( '#111111', $result['reopen_button_background'], 'Valid reopen button colors should persist.' );
+    ccbo_assert_same( '#222222', $result['reopen_button_text'], 'Valid reopen button text colors should persist.' );
+    ccbo_assert_same( '#333333', $result['reopen_button_border'], 'Valid reopen button border colors should persist.' );
+    ccbo_assert_same( '#444444', $result['attribution_text'], 'Valid attribution text colors should persist.' );
+    ccbo_assert_same( '#2563eb', $result['attribution_link'], 'Invalid attribution link colors should fall back to defaults.' );
     ccbo_assert_same( '.ccbo{color:red;}', $result['custom_css'], 'Custom CSS should be stripped down to raw CSS text.' );
 }

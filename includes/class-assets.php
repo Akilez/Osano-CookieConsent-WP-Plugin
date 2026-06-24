@@ -87,7 +87,7 @@ class CCBO_Cookie_Consent_Assets {
 		wp_enqueue_script( 'ccbo-cookie-consent-vendor' );
 		wp_enqueue_script( 'ccbo-cookie-consent' );
 
-		$custom_css = $this->get_custom_css();
+		$custom_css = $this->get_frontend_inline_css();
 
 		if ( '' !== $custom_css ) {
 			wp_add_inline_style( 'ccbo-cookie-consent', $custom_css );
@@ -186,6 +186,38 @@ class CCBO_Cookie_Consent_Assets {
 		}
 
 		return trim( (string) $options['custom_css'] );
+	}
+
+	/**
+	 * Return generated shortcode styles plus custom CSS overrides.
+	 *
+	 * @return string
+	 */
+	private function get_frontend_inline_css() {
+		$css_parts = array(
+			$this->get_shortcode_color_css(),
+			$this->get_custom_css(),
+		);
+
+		return trim( implode( "\n", array_filter( $css_parts ) ) );
+	}
+
+	/**
+	 * Return CSS variables for shortcode colors.
+	 *
+	 * @return string
+	 */
+	private function get_shortcode_color_css() {
+		$options = $this->settings->get_options();
+
+		return sprintf(
+			":root {\n\t--ccbo-reopen-button-background: %1\$s;\n\t--ccbo-reopen-button-text: %2\$s;\n\t--ccbo-reopen-button-border: %3\$s;\n\t--ccbo-attribution-text: %4\$s;\n\t--ccbo-attribution-link: %5\$s;\n}",
+			$options['reopen_button_background'],
+			$options['reopen_button_text'],
+			$options['reopen_button_border'],
+			$options['attribution_text'],
+			$options['attribution_link']
+		);
 	}
 
 	/**

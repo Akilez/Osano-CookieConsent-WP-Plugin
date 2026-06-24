@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once CCBO_COOKIE_CONSENT_PATH . 'includes/class-assets.php';
 require_once CCBO_COOKIE_CONSENT_PATH . 'includes/class-settings.php';
+require_once CCBO_COOKIE_CONSENT_PATH . 'includes/class-shortcodes.php';
 require_once CCBO_COOKIE_CONSENT_PATH . 'includes/class-updater.php';
 
 /**
@@ -35,6 +36,13 @@ final class CCBO_Cookie_Consent_Plugin {
 	private $settings;
 
 	/**
+	 * Shortcode manager.
+	 *
+	 * @var CCBO_Cookie_Consent_Shortcodes
+	 */
+	private $shortcodes;
+
+	/**
 	 * Updater integration.
 	 *
 	 * @var CCBO_Cookie_Consent_Updater
@@ -58,9 +66,10 @@ final class CCBO_Cookie_Consent_Plugin {
 	 * Construct the plugin.
 	 */
 	private function __construct() {
-		$this->settings = new CCBO_Cookie_Consent_Settings();
-		$this->assets   = new CCBO_Cookie_Consent_Assets( $this->settings );
-		$this->updater  = new CCBO_Cookie_Consent_Updater();
+		$this->settings   = new CCBO_Cookie_Consent_Settings();
+		$this->assets     = new CCBO_Cookie_Consent_Assets( $this->settings );
+		$this->shortcodes = new CCBO_Cookie_Consent_Shortcodes();
+		$this->updater    = new CCBO_Cookie_Consent_Updater();
 
 		$this->updater->init();
 
@@ -75,5 +84,6 @@ final class CCBO_Cookie_Consent_Plugin {
 	public function init() {
 		$this->assets->register_hooks();
 		$this->settings->register_hooks();
+		$this->shortcodes->register_hooks();
 	}
 }

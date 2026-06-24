@@ -33,6 +33,10 @@ function esc_attr( $text ) {
     return (string) $text;
 }
 
+function esc_url( $url ) {
+    return esc_url_raw( $url );
+}
+
 function esc_js( $text ) {
     return addslashes( (string) $text );
 }
@@ -121,6 +125,16 @@ function add_filter( $tag, $callback ) {
     }
 
     $ccbo_test_filters[ $tag ][] = $callback;
+}
+
+function add_shortcode( $tag, $callback ) {
+    global $ccbo_test_shortcodes;
+
+    if ( ! isset( $ccbo_test_shortcodes ) ) {
+        $ccbo_test_shortcodes = array();
+    }
+
+    $ccbo_test_shortcodes[ $tag ] = $callback;
 }
 
 function register_setting() {}

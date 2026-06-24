@@ -60,6 +60,31 @@ function test_assets_custom_css_is_trimmed() {
     ccbo_assert_same( '.ccbo-cookie-consent { color: red; }', $css, 'Custom CSS should be trimmed before output.' );
 }
 
+function test_assets_frontend_inline_css_includes_shortcode_colors_and_custom_css() {
+    $settings = new CCBO_Cookie_Consent_Settings();
+    update_option(
+        CCBO_Cookie_Consent_Settings::OPTION_KEY,
+        array(
+            'reopen_button_background' => '#111111',
+            'reopen_button_text'       => '#222222',
+            'reopen_button_border'     => '#333333',
+            'attribution_text'         => '#444444',
+            'attribution_link'         => '#555555',
+            'custom_css'               => '.custom { color: red; }',
+        )
+    );
+
+    $assets = new CCBO_Cookie_Consent_Assets( $settings );
+    $css    = ccbo_invoke_private_method( $assets, 'get_frontend_inline_css' );
+
+    ccbo_assert_true( false !== strpos( $css, '--ccbo-reopen-button-background: #111111;' ), 'Frontend CSS should include reopen button background variable.' );
+    ccbo_assert_true( false !== strpos( $css, '--ccbo-reopen-button-text: #222222;' ), 'Frontend CSS should include reopen button text variable.' );
+    ccbo_assert_true( false !== strpos( $css, '--ccbo-reopen-button-border: #333333;' ), 'Frontend CSS should include reopen button border variable.' );
+    ccbo_assert_true( false !== strpos( $css, '--ccbo-attribution-text: #444444;' ), 'Frontend CSS should include attribution text variable.' );
+    ccbo_assert_true( false !== strpos( $css, '--ccbo-attribution-link: #555555;' ), 'Frontend CSS should include attribution link variable.' );
+    ccbo_assert_true( false !== strpos( $css, '.custom { color: red; }' ), 'Frontend CSS should append custom CSS overrides.' );
+}
+
 function test_assets_frontend_config_includes_normalized_deferred_scripts() {
     $settings = new CCBO_Cookie_Consent_Settings();
     update_option(

@@ -7,6 +7,7 @@
 
   var LOCATION_CACHE_KEY = 'ccboCookieConsentLocationV1';
   var loadedDeferredScripts = {};
+  var currentConsentInstance = null;
   var consentBypass = false;
   var EU_COUNTRY_CODES = [
     'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
@@ -85,7 +86,7 @@
   }
 
   function consentAllowsTracking(status, mode) {
-    if (consentBypass) {
+    if (consentBypass && status !== 'deny') {
       return true;
     }
 
@@ -254,6 +255,8 @@
       : null;
 
     config.onInitialise = function () {
+      currentConsentInstance = this;
+
       if (originalOnInitialise) {
         originalOnInitialise.apply(this, arguments);
       }
@@ -377,9 +380,52 @@
       },
       loadDeferredScripts: function () {
         maybeLoadDeferredScripts();
+      },
+      reopen: function () {
+        if (
+          currentConsentInstance &&
+          typeof currentConsentInstance.revokeChoice === 'function'
+        ) {
+          currentConsentInstance.revokeChoice();
+          return true;
+        }
+
+        if (
+          window.cookieconsent &&
+          typeof window.cookieconsent.initialise === 'function'
+        ) {
+          consentBypass = false;
+          initializeConsent(config);
+          return true;
+        }
+
+        return false;
       }
     };
   }
+
+  document.addEventListener('click', function (event) {
+    var target = event.target;
+
+    if (!target || !target.closest) {
+      return;
+    }
+
+    var trigger = target.closest('[data-ccbo-cookie-consent-reopen]');
+
+    if (!trigger) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (
+      window.ccboCookieConsent &&
+      typeof window.ccboCookieConsent.reopen === 'function'
+    ) {
+      window.ccboCookieConsent.reopen();
+    }
+  });
 
   function initialize() {
     var config = window.ccboCookieConsentConfig || {};

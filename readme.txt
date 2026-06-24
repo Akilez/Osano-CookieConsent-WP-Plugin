@@ -4,7 +4,7 @@ Tags: cookies, privacy, gdpr, consent
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,8 @@ Current features:
 * Configurable location lookup timeout and cache duration
 * Built-in Google Analytics 4 integration with consent-gated loading
 * Consent-aware deferred script loading for admin-managed custom analytics or marketing snippets
-* Banner color controls and additional CSS
+* Shortcodes for reopening cookie settings and displaying CookieConsent attribution
+* Banner and shortcode color controls with additional CSS
 * Custom browser events for consent initialization and status changes
 * WordPress filters and actions for site-specific overrides
 * Activation, deactivation, and uninstall lifecycle hooks
@@ -61,6 +62,14 @@ Yes. The plugin now includes a built-in GA4 integration that loads through the c
 
 Yes. Add script URLs or inline script contents in `Settings > Cookie Consent > Integrations`. Scripts added there load only when the current consent mode allows tracking. Scripts hardcoded directly by another theme or plugin still need to be removed or moved into this gate.
 
+= How can visitors reopen cookie settings? =
+
+Enable `Display Cookie Settings Tab` to show the built-in floating tab, or add `[ccbo_cookie_consent_reopen]` anywhere shortcodes are supported. The shortcode accepts optional `text` and `class` attributes.
+
+= Is there an attribution shortcode? =
+
+Yes. Add `[ccbo_cookie_consent_attribution]` where you want to display optional CookieConsent attribution.
+
 = How do I run the tests? =
 
 From the plugin root, run `php tests/run.php`. The test suite uses a lightweight WordPress shim and does not require Composer or PHPUnit.
@@ -70,6 +79,14 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
+
+= 0.3.2 =
+
+* Added `[ccbo_cookie_consent_reopen]` for placing a cookie settings button anywhere shortcodes are supported
+* Added `[ccbo_cookie_consent_attribution]` for optional CookieConsent attribution
+* Renamed the revokable setting label to `Display Cookie Settings Tab`
+* Added `window.ccboCookieConsent.reopen()` for custom frontend controls
+* Added styling controls for the reopen button and attribution shortcode
 
 = 0.3.1 =
 
