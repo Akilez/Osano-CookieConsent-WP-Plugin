@@ -4,7 +4,7 @@ Tags: cookies, privacy, gdpr, consent
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,6 +79,13 @@ From the plugin root, run `php tests/run.php`. The test suite uses a lightweight
 This plugin is configured to read updates from GitHub releases. Publish a new tagged release in `https://github.com/Akilez/Osano-CookieConsent-WP-Plugin` with the packaged `cookie-consent-by-osano.zip` asset and WordPress will detect it through the bundled update checker.
 
 == Changelog ==
+
+= 0.3.3 =
+
+* Fixed the cookie settings shortcode button so it can reopen the consent window reliably
+* Improved the default cookie settings shortcode button styling
+* Added shortcode hints to the Styling panel headings
+* Tightened Styling panel heading spacing
 
 = 0.3.2 =
 

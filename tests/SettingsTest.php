@@ -12,7 +12,7 @@ function test_settings_default_options() {
     ccbo_assert_same( '', $defaults['ga4_measurement_id'], 'GA4 measurement ID should default to blank.' );
     ccbo_assert_same( array(), $defaults['script_gate_entries'], 'Script gate entries should default to an empty list.' );
     ccbo_assert_same( '#1f2937', $defaults['palette_popup_background'], 'Banner background default changed unexpectedly.' );
-    ccbo_assert_same( '#ffffff', $defaults['reopen_button_background'], 'Reopen button background default changed unexpectedly.' );
+    ccbo_assert_same( '#2563eb', $defaults['reopen_button_background'], 'Reopen button background default changed unexpectedly.' );
     ccbo_assert_same( '#4b5563', $defaults['attribution_text'], 'Attribution text default changed unexpectedly.' );
 }
 

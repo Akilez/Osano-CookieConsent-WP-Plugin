@@ -232,6 +232,35 @@
     request.send();
   }
 
+  function cloneConfigValue(value) {
+    var cloned = {};
+
+    if (Array.isArray(value)) {
+      return value.map(cloneConfigValue);
+    }
+
+    if (!value || typeof value !== 'object') {
+      return value;
+    }
+
+    Object.keys(value).forEach(function (key) {
+      cloned[key] = cloneConfigValue(value[key]);
+    });
+
+    return cloned;
+  }
+
+  function getManualReopenConfig(config) {
+    var reopenConfig = cloneConfigValue(config || {});
+
+    delete reopenConfig.law;
+    delete reopenConfig.ulcLocation;
+    reopenConfig.enabled = true;
+    reopenConfig.autoOpen = true;
+
+    return reopenConfig;
+  }
+
   function initializeConsent(config) {
     if (config && typeof config === 'object' && config.ulcLocation) {
       delete config.ulcLocation;
@@ -276,7 +305,18 @@
       syncGa4Consent();
     };
 
-    window.cookieconsent.initialise(config);
+    window.cookieconsent.initialise(
+      config,
+      function (instance) {
+        currentConsentInstance = instance || currentConsentInstance;
+      },
+      function (error, instance) {
+        currentConsentInstance = instance || currentConsentInstance;
+        dispatchEvent('ccboCookieConsentInitialiseError', {
+          reason: error && error.message ? error.message : 'initialise-failed'
+        });
+      }
+    );
   }
 
   function getDeferredScripts() {
@@ -391,11 +431,19 @@
         }
 
         if (
+          currentConsentInstance &&
+          typeof currentConsentInstance.open === 'function'
+        ) {
+          currentConsentInstance.open();
+          return true;
+        }
+
+        if (
           window.cookieconsent &&
           typeof window.cookieconsent.initialise === 'function'
         ) {
           consentBypass = false;
-          initializeConsent(config);
+          initializeConsent(getManualReopenConfig(config));
           return true;
         }
 

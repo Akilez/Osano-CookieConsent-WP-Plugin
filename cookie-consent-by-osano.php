@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Cookie Consent by Osano
  * Description: Reusable cookie consent plugin powered by Osano CookieConsent.
- * Version: 0.3.2
+ * Version: 0.3.3
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Akilez
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CCBO_COOKIE_CONSENT_VERSION', '0.3.2' );
+define( 'CCBO_COOKIE_CONSENT_VERSION', '0.3.3' );
 define( 'CCBO_COOKIE_CONSENT_FILE', __FILE__ );
 define( 'CCBO_COOKIE_CONSENT_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CCBO_COOKIE_CONSENT_URL', plugin_dir_url( __FILE__ ) );

@@ -492,9 +492,9 @@ class CCBO_Cookie_Consent_Settings {
 			'palette_button_text'          => '#ffffff',
 			'palette_button_border'        => '#2563eb',
 			'palette_highlight_text'       => '#f9fafb',
-			'reopen_button_background'     => '#ffffff',
-			'reopen_button_text'           => '#1f2937',
-			'reopen_button_border'         => '#1f2937',
+			'reopen_button_background'     => '#2563eb',
+			'reopen_button_text'           => '#ffffff',
+			'reopen_button_border'         => '#2563eb',
 			'attribution_text'             => '#4b5563',
 			'attribution_link'             => '#2563eb',
 			'custom_css'                   => '',
@@ -584,14 +584,14 @@ class CCBO_Cookie_Consent_Settings {
 					<?php $this->render_compact_field( 'palette_highlight_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
 				</div>
 
-                <h3><?php echo esc_html__( 'Cookie Settings Button', 'cookie-consent-by-osano' ); ?></h3>
+				<?php $this->render_style_group_heading( __( 'Cookie Settings Button', 'cookie-consent-by-osano' ), '[ccbo_cookie_consent_reopen]' ); ?>
 				<div class="ccbo-style-group-fields">
 					<?php $this->render_compact_field( 'reopen_button_background', __( 'Background', 'cookie-consent-by-osano' ), 'color' ); ?>
 					<?php $this->render_compact_field( 'reopen_button_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
 					<?php $this->render_compact_field( 'reopen_button_border', __( 'Border', 'cookie-consent-by-osano' ), 'color' ); ?>
 				</div>
 
-                <h3><?php echo esc_html__( 'Attribution', 'cookie-consent-by-osano' ); ?></h3>
+				<?php $this->render_style_group_heading( __( 'Attribution', 'cookie-consent-by-osano' ), '[ccbo_cookie_consent_attribution]' ); ?>
 				<div class="ccbo-style-group-fields">
 					<?php $this->render_compact_field( 'attribution_text', __( 'Text', 'cookie-consent-by-osano' ), 'color' ); ?>
 					<?php $this->render_compact_field( 'attribution_link', __( 'Link', 'cookie-consent-by-osano' ), 'color' ); ?>
@@ -603,6 +603,17 @@ class CCBO_Cookie_Consent_Settings {
 				<?php $this->render_styling_css_field(); ?>
 			</div>
 		</div>
+		<?php
+	}
+
+	private function render_style_group_heading( $label, $hint = '' ) {
+		?>
+		<h3>
+			<?php echo esc_html( $label ); ?>
+			<?php if ( '' !== $hint ) : ?>
+				<small><?php echo esc_html( $hint ); ?></small>
+			<?php endif; ?>
+		</h3>
 		<?php
 	}
 
